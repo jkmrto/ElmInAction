@@ -9133,10 +9133,14 @@ var _user$project$PhotoGroove$update = F2(
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'SurpriseMe':
+				var randomPhotoPicker = A2(
+					_elm_lang$core$Random$int,
+					0,
+					_elm_lang$core$List$length(model.photos) - 1);
 				return {
 					ctor: '_Tuple2',
 					_0: model,
-					_1: A2(_elm_lang$core$Random$generate, _user$project$PhotoGroove$SelectByIndex, _user$project$PhotoGroove$randomPhotoPicker)
+					_1: A2(_elm_lang$core$Random$generate, _user$project$PhotoGroove$SelectByIndex, randomPhotoPicker)
 				};
 			case 'SetSize':
 				return {
@@ -9147,13 +9151,20 @@ var _user$project$PhotoGroove$update = F2(
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			default:
+				var newSelectedUrl = A2(
+					_elm_lang$core$Maybe$map,
+					function (_) {
+						return _.url;
+					},
+					A2(
+						_elm_lang$core$Array$get,
+						_p3._0,
+						_elm_lang$core$Array$fromList(model.photos)));
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{
-							selectedUrl: _user$project$PhotoGroove$getPhotoUrl(_p3._0)
-						}),
+						{selectedUrl: newSelectedUrl}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 		}
