@@ -5,6 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Array exposing (Array)
+import Http
 import Random
 
 urlPrefix : String
@@ -32,6 +33,18 @@ photoArray : Array Photo
 photoArray = Array.fromList initialModel.photos
 
 -- View
+
+viewOrError : Model -> Html Msg
+viewOrError model =
+    case model.loadingError of
+        Nothing ->
+            view model
+        Just errorMessage ->
+            div [ class "error-message" ]
+                [ h1 [] [ text "Photo Groove" ]
+                , p [] [ text errorMessage ]
+                ]
+
 view : Model -> Html Msg
 view model =
   div [ class "content" ]
@@ -120,12 +133,16 @@ update msg model =
         ( { model | selectedUrl = newSelectedUrl }, Cmd.none )
     LoadPhotos (Ok responseStr) ->
         let
-            urls = String.split "," responseStr 
+            photos = String.split "," responseStr 
                 |> List.map Photo 
         in
             ( { model | photos = photos }, Cmd.none ) 
     LoadPhotos (Err _) ->
-        ( model, Cmd.none )
+    ( { model
+        | loadingError = Just "Error! (Try turning it off and on again?)"
+      }
+    , Cmd.none
+    )
 
 -- Model
 initialModel : Model
@@ -138,10 +155,10 @@ initialModel =
 
 -- LoadPhots
 initialCmd : Cmd Msg
-    initialCmd =
-        "http://elm-in-action.com/photos/list")
-            |> Http.getString 
-            |> Http.send LoadPhotos
+initialCmd =
+    "http://elm-in-action.com/photos/list"
+        |> Http.getString 
+        |> Http.send LoadPhotos
 
 
 -- Main
@@ -149,7 +166,7 @@ main : Program Never Model Msg
 main =
   Html.program
     { init = ( initialModel, initialCmd )   
-    , view = view
+    , view = viewOrError
     , update = update 
     , subscriptions = (\_ -> Sub.none)
     }

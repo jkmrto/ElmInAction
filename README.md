@@ -4,7 +4,7 @@ Code done by me through the reading of the book elm in action
 
 Useful commands
 ```
-elm-make PhotoGroove.elm --output elm.js
+elm-make chapter4/PhotoGroove.elm --output chapter4/elm.js
 ```
 
 How to install node 6
