@@ -26,6 +26,10 @@ type Msg =
   | SurpriseMe 
   | SetSize ThumbnailSize 
   | SelectByIndex Int
+  | LoadPhotos (Result Http.Error String)
+
+photoArray : Array Photo
+photoArray = Array.fromList initialModel.photos
 
 -- View
 view : Model -> Html Msg
@@ -64,7 +68,10 @@ viewSizeChooser size =
   label []
   [ input [ type_ "radio", name "size", onClick (SetSize size) ] []
   , text (sizeToString size)]
-  
+
+
+-- View End
+
 sizeToString : ThumbnailSize -> String
 sizeToString size =
   case size of
@@ -86,19 +93,7 @@ getPhotoUrl index =
 randomPhotoPicker : Random.Generator Int
 randomPhotoPicker = Random.int 0 (Array.length photoArray - 1)
 
--- Model
-initialModel : Model
-initialModel =
-  { photos = []
-  , selectedUrl = Nothing
-  , loadingError = Nothing
-  , chosenSize = Large
-  } 
-
-photoArray : Array Photo
-photoArray = Array.fromList initialModel.photos
-
-
+         
 --Update
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -123,13 +118,38 @@ update msg model =
           |> Maybe.map .url
       in
         ( { model | selectedUrl = newSelectedUrl }, Cmd.none )
+    LoadPhotos (Ok responseStr) ->
+        let
+            urls = String.split "," responseStr 
+                |> List.map Photo 
+        in
+            ( { model | photos = photos }, Cmd.none ) 
+    LoadPhotos (Err _) ->
+        ( model, Cmd.none )
+
+-- Model
+initialModel : Model
+initialModel =
+  { photos = []
+  , selectedUrl = Nothing
+  , loadingError = Nothing
+  , chosenSize = Large
+  } 
+
+-- LoadPhots
+initialCmd : Cmd Msg
+    initialCmd =
+        "http://elm-in-action.com/photos/list")
+            |> Http.getString 
+            |> Http.send LoadPhotos
+
 
 -- Main
 main : Program Never Model Msg
 main =
   Html.program
-    { init = ( initialModel, Cmd.none )   
+    { init = ( initialModel, initialCmd )   
     , view = view
     , update = update 
-    , subscriptions = (\model -> Sub.none)
+    , subscriptions = (\_ -> Sub.none)
     }
